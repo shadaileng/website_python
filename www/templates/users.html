@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}用户{% endblock %}
+
+{% block beforehead %}
+
+<script type="text/javascript">
+	
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+	<div class="uk-width-medium-3-4">
+	{% for user in users %}
+		{{user.name}} // {{user.email}}
+		<hr class="uk-article-divider">
+	{% endfor %}
+	</div>
+	}
+
+{% endblock %}
