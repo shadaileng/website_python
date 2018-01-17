@@ -111,6 +111,7 @@ class Model(dict, metaclass=ModelMetaclass):
 		logging.info('SQL: %s' % sql)
 		logging.info('ARG: %s' % args)
 		res = yield from execute(sql, args)
+		print('res: %s' % res)
 		if res == 0:
 			logging.info('insert 0 row')
 		return res
@@ -155,7 +156,7 @@ class Model(dict, metaclass=ModelMetaclass):
 		return res
 
 	@asyncio.coroutine
-	def find(self):
+	def find(self, offset=0, limit=3):
 		params = ['1 = 1']
 		args = []
 		for field in self.__fields__:
@@ -164,7 +165,11 @@ class Model(dict, metaclass=ModelMetaclass):
 				continue
 			params.append('%s = ?' % field)
 			args.append(value)
-		sql = 'select %s from %s where %s' % (','.join(self.__fields__), self.__table__, ' and '.join(params))
+		logging.info('ARG: %s' % args)
+		if limit <= 0:
+			count = yield from select('select count(%s) _num_ from %s where %s' % (self.__primary_key__, self.__table__, ' and '.join(params)))
+			limit = count[0][0]
+		sql = 'select %s from %s where %s limit %d offset %s' % (','.join(self.__fields__), self.__table__, ' and '.join(params), limit, offset)
 		logging.info('SQL: %s' % sql)
 		logging.info('ARG: %s' % args)
 		res = yield from select(sql, args)
@@ -173,7 +178,6 @@ class Model(dict, metaclass=ModelMetaclass):
 			return None
 		rows = self.rows2mapping(res)
 		return rows
-	
 		
 	
 if __name__ == '__main__':

@@ -23,9 +23,10 @@ class User(Model):
 	name = StringField(name='name')
 	password = StringField(name='password')
 	email = StringField(name='email')
-	admin = IntegeField(name='admin', column_type='Number(1)')
+	admin = IntegeField(name='admin', column_type='Number(1)', default=0)
 	image = StringField(name='image')
-	create_time = StringField(name='create_time', default=datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S,%f'))
+	create_time = StringField(name='create_time', default=datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S.%f'))
+#	create_time = StringField(name='create_time', default=datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S.%f'))
 
 class Blog(Model):
 	id = IntegeField(name = 'id', primary_key=True, default=next_id)
@@ -45,7 +46,10 @@ class Comment(Model):
 		
 
 def run():
-	rows = yield from User(id = 2).find()
+#	user = User(name='qpf3', email='qpf0510@qq.com')
+#	res = yield from user.save()
+#	print(res)
+	rows = yield from User().find()
 	for row in rows:
 		print(row)
 
@@ -70,3 +74,8 @@ if __name__ == '__main__':
 	
 #	user = User(id = '2', name='shadileng', email='qpf0510@qq.com')
 #	user.update()
+	
+#	user = User(name='qpf', password='123456', email='qpf0510@qq.com', admin=0, image='./res/tumblr.png')
+#	print(user)
+#	res = user.save()
+#	print('res: %s' % res)

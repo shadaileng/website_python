@@ -72,9 +72,12 @@ def execute(sql, args = (), db = configs.db):
 	return change
 
 def run():
-	rs = yield from select('select * from user', ())
-	for r in rs:
-		print(r)
+#	rs = yield from select('select count(id) _num_ from User', ())
+#	print(rs)
+	res = yield from execute('delete from user')
+#	rs = yield from select('select * from User', ())
+#	for r in rs:
+#		print(r)
 
 def start_server():
 	loop = asyncio.get_event_loop()

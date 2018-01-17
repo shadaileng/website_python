@@ -12,11 +12,16 @@ __author__ = 'Shadaileng'
 
 import logging; logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s line:%(lineno)d %(filename)s %(funcName)s >>> %(message)s')
 
-import functools, inspect, asyncio, os, json, time
+import functools, inspect, asyncio, os, json, time, hashlib, sys
 from datetime import datetime
 from jinja2 import Environment, FileSystemLoader
 from aiohttp import web
 from apis import APIError
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from conf.config import configs
+
+COOKIE_KEY = configs.session.secret
 
 def get(path):
 	def decorator(func):
@@ -258,6 +263,36 @@ def add_static(app):
 	path = os.path.join(os.path.dirname(__file__), 'static')
 	app.router.add_static('/static/', path)
 	logging.info('add static %s => %s' % ('/static/', path))
+
+def user2cookie(user, max_age):
+	duration = str(int(time.time() + max_age))
+	cookies = '%s-%s-%s-%s' % (user.id, user.password, duration, COOKIE_KEY)
+	zip_cookie = [user.id, duration, hashlib.sha1(cookies.encode('utf-8')).hexdigest()]
+
+	return '-'.join(zip_cookie)
+
+def cookie2user(zip_cookie):
+	if not zip_cookie:
+		return None
+	try:
+		unzip_cookie = zip_cookie.split('-')
+		if len(unzip_cookie) != 3:
+			return None
+		uid, duration, sha1 = unzip_cookie
+		if int(duration) < time.time():
+			return None
+		user = yield from User(id = uid).find()
+		if user is None:
+			return None
+		cookies = '%s-%s-%s-%s' % (user.id, user.password, duration, COOKIE_KEY)
+		if sha1 != hashlib.sha1(cookies.encode('utf-8').hexdigest()):
+			logging.info('invalid sha1')
+			return None
+		user.password = '******'
+		return user
+	except Exception as e:
+		logging.exception(e)
+		return None
 
 if __name__ == '__main__':
 	print(__doc__ % __author__)
