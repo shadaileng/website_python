@@ -20,7 +20,10 @@ from conf.config import configs
 
 _coutnt = 0
 
-def get_connect(db = configs.db, max = 10):
+DB_SRC = configs.db.name
+MAX_CONN = configs.db.conn
+
+def get_connect(db = DB_SRC, max = MAX_CONN):
 	global _coutnt
 	_coutnt += 1
 	try:
@@ -36,7 +39,7 @@ def get_connect(db = configs.db, max = 10):
 	return conn
 
 @asyncio.coroutine
-def select(sql, args = (), size = None, db = configs.db):
+def select(sql, args = (), size = None, db = DB_SRC):
 	logging.info('%s %s' % (sql, args))
 	try:
 		with get_connect(db) as conn:
@@ -49,6 +52,7 @@ def select(sql, args = (), size = None, db = configs.db):
 	except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
 		logging.error('Could not complete operation: %s' % e)
 		rs = None
+		cur = None
 	finally:
 		if cur is not None:
 			cur.close()
@@ -59,7 +63,7 @@ def select(sql, args = (), size = None, db = configs.db):
 	return rs
 
 @asyncio.coroutine
-def execute(sql, args = (), db = configs.db):
+def execute(sql, args = (), db = DB_SRC):
 	logging.info('%s %s' % (sql, args))
 	try:
 		with get_connect(db) as conn:
@@ -74,10 +78,10 @@ def execute(sql, args = (), db = configs.db):
 def run():
 #	rs = yield from select('select count(id) _num_ from User', ())
 #	print(rs)
-	res = yield from execute('delete from user')
-#	rs = yield from select('select * from User', ())
-#	for r in rs:
-#		print(r)
+#	res = yield from execute('delete from user')
+	rs = yield from select('select * from User', ())
+	for r in rs:
+		print(r)
 
 def start_server():
 	loop = asyncio.get_event_loop()

@@ -17,11 +17,13 @@ from datetime import datetime
 from jinja2 import Environment, FileSystemLoader
 from aiohttp import web
 from apis import APIError
+from domain import User
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from conf.config import configs
 
 COOKIE_KEY = configs.session.secret
+_COOKIE_NAME = configs.session.cookie
 
 def get(path):
 	def decorator(func):
@@ -39,7 +41,7 @@ def post(path):
 		def wrapper(*args, **kw):
 			return func(*args, **kw)
 		wrapper.__method__ = 'POST'
-		wrapper.path = path
+		wrapper.__route__ = path
 		return wrapper
 	return decorator
 
@@ -94,24 +96,25 @@ class RequestHandler(object):
 		self._has_name_kw_args = has_name_kw_args(func)
 		self._has_var_kw_args = has_var_kw_args(func)
 		self._has_request_args = has_request_args(func)
-	
+
+	@asyncio.coroutine
 	def __call__(self, request):
 		kw = None
 		if self._has_var_kw_args or self._has_name_kw_args or self._request_kw_args:
 			if request.method == 'POST':
 				if not request.content_type:
-					return HTTPBadResponse('Miss Cobtent-Type')
+					return web.HTTPBadRequest(reason='Miss Cobtent-Type')
 				content_type = request.content_type.lower()
 				if content_type.startswith('application/json'):
-					params = request.json()
+					params = yield from request.json()
 					if not isinstance(params, dict):
-						return HTTPBadResponse('JSON body must be object.')
+						return web.HTTPBadRequest(reason='JSON body must be object.')
 					kw = params
 				elif content_type.startswith('application/x-www-form-urlencoded') or content_type.startswith('application/form-data'):
 					params = request.post()
 					kw = dict(**params)
 				else:
-					return HTTPBadResponse('Unsupported content_type: %s' % content_type)
+					return web.HTTPBadRequest(reason='Unsupported Content-Type: %s' % request.content_types)
 			
 			if request.method == 'GET':
 				qs = request.query_string
@@ -140,12 +143,13 @@ class RequestHandler(object):
 		if self._request_kw_args:
 			for name in self._request_kw_args:
 				if name not in kw:
-					return HTTPBadResponse('Miss arg: %s' % name)
+					return web.HTTPBadRequest(reason='Miss arg: %s' % name)
 		logging.info('%s call with args: %s' % (self._func.__name__, str(kw)))
 		try:
 			rep = yield from self._func(**kw)
 			return rep
 		except APIError as e:
+			logging.exception(e)
 			return dict(error = e.error, data = e.data, message = e.message)
 
 def add_route(app, fn):
@@ -201,6 +205,7 @@ def logger_factory(app, handler):
 	@asyncio.coroutine
 	def logger(request):
 		logging.info('Request: %s %s' % (request.method, request.path))
+		logging.info('handler: %s' % handler.__name__)
 		return (yield from handler(request))
 	
 	return logger
@@ -209,8 +214,9 @@ def logger_factory(app, handler):
 def response_factory(app, handler):
 	@asyncio.coroutine
 	def response(request):
-		logging.info('Response handler ...')
+		logging.info('Response handler: %s ...' % handler.__name__)
 		rep = yield from handler(request)
+		logging.info('rep: %s' % str(rep))
 		if isinstance(rep, web.StreamResponse):
 			return rep
 		if isinstance(rep, bytes):
@@ -230,6 +236,7 @@ def response_factory(app, handler):
 				rep.content_type = 'text/json;charset=utf-8'
 				return rep
 			else:
+				rep['__user__'] = request.__user__
 				rep = web.Response(body=app['__templating__'].get_template(template).render(**rep).encode('utf-8'))
 				rep.content_type = ' text/html;charset=utf-8'
 				return rep
@@ -269,7 +276,7 @@ def user2cookie(user, max_age):
 	cookies = '%s-%s-%s-%s' % (user.id, user.password, duration, COOKIE_KEY)
 	zip_cookie = [user.id, duration, hashlib.sha1(cookies.encode('utf-8')).hexdigest()]
 
-	return '-'.join(zip_cookie)
+	return '-'.join(map(str, zip_cookie))
 
 def cookie2user(zip_cookie):
 	if not zip_cookie:
@@ -281,11 +288,12 @@ def cookie2user(zip_cookie):
 		uid, duration, sha1 = unzip_cookie
 		if int(duration) < time.time():
 			return None
-		user = yield from User(id = uid).find()
+		users = yield from User(id = uid).find()
+		user = users[0]
 		if user is None:
 			return None
 		cookies = '%s-%s-%s-%s' % (user.id, user.password, duration, COOKIE_KEY)
-		if sha1 != hashlib.sha1(cookies.encode('utf-8').hexdigest()):
+		if sha1 != hashlib.sha1(cookies.encode('utf-8')).hexdigest():
 			logging.info('invalid sha1')
 			return None
 		user.password = '******'
@@ -293,6 +301,23 @@ def cookie2user(zip_cookie):
 	except Exception as e:
 		logging.exception(e)
 		return None
+
+@asyncio.coroutine
+def auth_factory(app, handler):
+	@asyncio.coroutine
+	def auth(request):
+		logging.info('check user: %s => %s' % (request.method, request.path))
+		request.__user__ = None
+		cookies = request.cookies.get(_COOKIE_NAME)
+		if cookies:
+			user = yield from cookie2user(cookies)
+			if user:
+				logging.info('set current user: %s' % user.email)
+				request.__user__ = user
+		if request.path.startswith('/manage/') and (request.__user__ is None or request.__user__.admin == '0'):
+			return web.HTTPFound('/login')
+		return (yield from handler(request))
+	return auth	
 
 if __name__ == '__main__':
 	print(__doc__ % __author__)

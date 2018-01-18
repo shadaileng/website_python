@@ -11,7 +11,10 @@
 __author__ = 'Shadaileng'
 #默认的配置
 configs = {
-	'db': 'test.db',
+	'db': {
+		'name': 'test.db',
+		'conn': 100
+	},
 	'host': '0.0.0.0',
 	'port': 8080,
 	'session': {

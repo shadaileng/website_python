@@ -14,14 +14,14 @@ import logging; logging.basicConfig(level=logging.INFO, format='%(asctime)s %(le
 import asyncio, sys, os
 
 from aiohttp import web
-from core import add_routes, init_jinjia2, logger_factory, response_factory, datetime_filter, add_static
+from core import add_routes, init_jinjia2, logger_factory, response_factory, datetime_filter, add_static, auth_factory
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from conf.config import configs
 
 @asyncio.coroutine
 def init(loop):
-	app = web.Application(loop=loop, middlewares=[logger_factory, response_factory])
+	app = web.Application(loop=loop, middlewares=[logger_factory, auth_factory, response_factory])
 	init_jinjia2(app, filters=dict(datetime=datetime_filter))
 	add_routes(app, 'handler')
 	add_static(app)

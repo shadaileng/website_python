@@ -92,7 +92,10 @@ class Model(dict, metaclass=ModelMetaclass):
 	def rows2mapping(self, rows):
 		mappings = []
 		fields = list(self.__fields__)
+		logging.info('fields: %s' % fields)
+		logging.info('rows: %s' % rows)
 		for row in rows:
+			logging.info(type(row))
 			mapping = {}
 			for index, value in enumerate(fields):
 				mapping[value] = row[index]
@@ -156,7 +159,7 @@ class Model(dict, metaclass=ModelMetaclass):
 		return res
 
 	@asyncio.coroutine
-	def find(self, offset=0, limit=3):
+	def find(self, offset=0, limit=0):
 		params = ['1 = 1']
 		args = []
 		for field in self.__fields__:
@@ -167,7 +170,7 @@ class Model(dict, metaclass=ModelMetaclass):
 			args.append(value)
 		logging.info('ARG: %s' % args)
 		if limit <= 0:
-			count = yield from select('select count(%s) _num_ from %s where %s' % (self.__primary_key__, self.__table__, ' and '.join(params)))
+			count = yield from select('select count(%s) _num_ from %s where %s' % (self.__primary_key__, self.__table__, ' and '.join(params)), args)
 			limit = count[0][0]
 		sql = 'select %s from %s where %s limit %d offset %s' % (','.join(self.__fields__), self.__table__, ' and '.join(params), limit, offset)
 		logging.info('SQL: %s' % sql)
@@ -177,8 +180,9 @@ class Model(dict, metaclass=ModelMetaclass):
 			logging.info('find 0 row')
 			return None
 		rows = self.rows2mapping(res)
-		return rows
-		
+		logging.info('rows: %s' % rows)
+		return [Model(** row) for row in rows]
+
 	
 if __name__ == '__main__':
 	print(__doc__ % __author__)
