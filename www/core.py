@@ -76,15 +76,15 @@ def has_var_kw_args(func):
 			return True
 
 def has_request_args(func):
-	sign = inspect.signature(func)
-	params = sign.parameters
+	sig = inspect.signature(func)
+	params = sig.parameters
 	found = False
 	for name, param in params.items():
 		if name == 'request':
 			found = True
 			continue
-		if found and (param != inspect.Parameter.VAR_POSITIONAL and param != inspect.Parameter.KEYWORD_ONLY and param != inspect.Parameter.VAR_KEYWORD):
-			raise ValueError('request parameter must be the last name parameter in function: %s%s' % (func.__name__, str(sig)))
+#		if found and (param != inspect.Parameter.VAR_POSITIONAL and param != inspect.Parameter.KEYWORD_ONLY and param != inspect.Parameter.VAR_KEYWORD):
+#			raise ValueError('request parameter must be the last name parameter in function: %s%s' % (func.__name__, str(sig)))
 	return found
 
 class RequestHandler(object):

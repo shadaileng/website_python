@@ -25,7 +25,7 @@ class User(Model):
 	email = StringField(name='email')
 	admin = IntegeField(name='admin', column_type='Number(1)', default=0)
 	image = StringField(name='image')
-	create_time = StringField(name='create_time', default=datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S.%f'))
+	create_time = StringField(name='create_time', default=datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f'))
 #	create_time = StringField(name='create_time', default=datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S.%f'))
 
 class Blog(Model):
@@ -34,15 +34,14 @@ class Blog(Model):
 	name = StringField(name='name')
 	summary = StringField(name='summary')
 	content = StringField(name='content')
-	summary = StringField(name='summary')
-	create_time = StringField(name='create_time', default=datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S,%f'))
+	create_time = StringField(name='create_time', default=datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f'))
 
 class Comment(Model):
 	id = IntegeField(name = 'id', primary_key=True, default=next_id)
 	user_id = IntegeField(name = 'id')
 	blog_id = IntegeField(name = 'id')
 	content = StringField(name='content')
-	create_time = StringField(name='create_time', default=datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S,%f'))
+	create_time = StringField(name='create_time', default=datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f'))
 		
 
 def run():

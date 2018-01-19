@@ -12,10 +12,11 @@ __author__ = 'Shadaileng'
 import time, re, json, sys, os, hashlib
 import logging; logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s line:%(lineno)d %(filename)s %(funcName)s >>> %(message)s')
 
-from core import get, post, user2cookie, cookie2user
 from aiohttp import web
+from datetime import datetime
+from core import get, post, user2cookie, cookie2user
 from domain import User, Blog, Comment, next_id
-from apis import APIValueError
+from apis import APIError, APIValueError
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from conf.config import configs
@@ -30,29 +31,18 @@ def index(request):
 
 @get('/')
 def api_get_blogs(request):
-	summary = '只是一条日志，我也不知道要写些什么'
-	blogs = [
-		Blog(id = '1', name='富强', user_id=1, summary=summary, content='略', create_time=time.time()-120),
-		Blog(id = '2', name='民主', user_id=1, summary=summary, content='略', create_time=time.time()-120),
-		Blog(id = '3', name='文明', user_id=1, summary=summary, content='略', create_time=time.time()-120),
-		Blog(id = '4', name='和谐', user_id=1, summary=summary, content='略', create_time=time.time()-120),
-		Blog(id = '5', name='自由', user_id=1, summary=summary, content='略', create_time=time.time()-120),
-		Blog(id = '6', name='平等', user_id=1, summary=summary, content='略', create_time=time.time()-120),
-		Blog(id = '7', name='公正', user_id=1, summary=summary, content='略', create_time=time.time()-120),
-		Blog(id = '8', name='法治', user_id=1, summary=summary, content='略', create_time=time.time()-120),
-		Blog(id = '9', name='爱国', user_id=1, summary=summary, content='略', create_time=time.time()-120),
-		Blog(id = '10', name='敬业', user_id=1, summary=summary, content='略', create_time=time.time()-120),
-		Blog(id = '11', name='诚实', user_id=1, summary=summary, content='略', create_time=time.time()-120),
-		Blog(id = '12', name='友善', user_id=1, summary=summary, content='略', create_time=time.time()-120)
-	]
-#	print(blogs)
+	
+	blogs = yield from Blog().find()
+	for blog in blogs:
+		blog.create_time = datetime.strptime(blog.create_time, '%Y-%m-%d %H:%M:%S,%f').timestamp()
+
 	return {
 		'__template__': 'blogs.html',
 		'blogs': blogs
 	}
 
 @get('/api/users/{page}/{pagesize}')
-def api_get_users(*, page='0',pagesize = '3'):
+def api_get_users(*, page='0',pagesize = '0'):
 	users = yield from User().find(limit=int(pagesize), offset=int(pagesize) * int(page))
 	for user in users:
 		logging.info('user: %s' % user)
@@ -171,4 +161,3 @@ def api_edit_blog(request, *, name, summary, content):
 if __name__ == '__main__':
 	print(__doc__ % __author__)
 	
-

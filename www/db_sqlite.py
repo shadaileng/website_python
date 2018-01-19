@@ -79,7 +79,12 @@ def run():
 #	rs = yield from select('select count(id) _num_ from User', ())
 #	print(rs)
 #	res = yield from execute('delete from user')
-	rs = yield from select('select * from User', ())
+#	rs = yield from select('select * from User', ())
+#	for r in rs:
+#		print(r)
+#	res = yield from execute('create table blog(id number(50) primary key, user_id number(50), name varchar(50), summary varchar(250), content varchar(2500), create_time varchar(50))')
+#	print(res)
+	rs = yield from select('select * from blog', ())
 	for r in rs:
 		print(r)
 
