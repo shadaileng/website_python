@@ -232,6 +232,7 @@ def response_factory(app, handler):
 		if isinstance(rep, dict):
 			template = rep.get('__template__')
 			if template is None:
+				rep['__user__'] = request.__user__
 				rep = web.Response(body=json.dumps(rep, ensure_ascii=False, default=lambda o: o.__dict__).encode('utf-8'))
 				rep.content_type = 'text/json;charset=utf-8'
 				return rep
@@ -288,7 +289,7 @@ def cookie2user(zip_cookie):
 		uid, duration, sha1 = unzip_cookie
 		if int(duration) < time.time():
 			return None
-		users = yield from User(id = uid).find()
+		users = (yield from User(id = uid).find())['data']
 		user = users[0]
 		if user is None:
 			return None

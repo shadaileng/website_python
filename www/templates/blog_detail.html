@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}日志列表{% endblock %}
+
+{% block beforehead %}
+
+<script type="text/javascript">
+	function initVM(data) {
+		var vm = new Vue({
+			el: '#vm',
+			data: data,
+			methods: {
+				blog_edit: function(blog){
+					location.assign('/manage/blog/edit/' + blog.id);
+				},
+				blog_delete:  function(blog){
+
+				}
+			}
+		});
+		$('#vm').show();
+	}
+	$(function () {
+		getJSON('{{action}}'+, 
+				function(err, data){
+					if(err){
+						return fatal(err)
+					}
+					$('#loading').hide()
+					initVM(data)
+				});
+	});
+</script>
+
+{% endblock %}
+
+{% block content %}
+	
+	<div id='loading' class="uk-width-1-1, uk-text-center">
+		<span><i class="uk-icon-spinner uk-icon-medium uk-icon-spin"></i>正在加载 ... </span>
+	</div>
+
+	<div id="vm" class="uk-width-2-3">
+	</div>
+
+{% endblock %}

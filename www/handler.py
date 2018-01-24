@@ -32,7 +32,7 @@ def index(request):
 @get('/')
 def api_get_blogs(request):
 	
-	blogs = yield from Blog().find()
+	blogs = (yield from Blog().find())['data']
 	for blog in blogs:
 		blog.create_time = datetime.strptime(blog.create_time, '%Y-%m-%d %H:%M:%S,%f').timestamp()
 
@@ -43,7 +43,7 @@ def api_get_blogs(request):
 
 @get('/api/users/{page}/{pagesize}')
 def api_get_users(*, page='0',pagesize = '0'):
-	users = yield from User().find(limit=int(pagesize), offset=int(pagesize) * int(page))
+	users = (yield from User().find(limit=int(pagesize), offset=int(pagesize) * int(page)))['data']
 	for user in users:
 		logging.info('user: %s' % user)
 
@@ -52,11 +52,12 @@ def api_get_users(*, page='0',pagesize = '0'):
 @get('/register')
 def redirect_regiest(request):
 	return {
-		'__template__': 'register.html'
+		'__template__': 'user_register.html',
+		'action': '/api/user/register'
 	}
 
-@post('/api/register')
-def api_register_user(*, name, password, email):
+@post('/api/user/register')
+def api_user_register(*, name, password, email):
 	if not name or not name.strip():
 		raise APIValueError('name', 'name is Null')
 	if not password or not password.strip():
@@ -65,7 +66,7 @@ def api_register_user(*, name, password, email):
 		raise APIValueError('email', 'email is Null')
 	if not _RE_EMAIL.match(email):
 		raise APIValueError('email: %s' % email, 'email is no format')
-	users = yield from User(email=email).find()
+	users = (yield from User(email=email).find())['data']
 	if len(users) > 0:
 		raise APIValueError('email', 'email: %s is already in use' % email)
 	uid = next_id()
@@ -88,18 +89,19 @@ def api_register_user(*, name, password, email):
 @get('/login')
 def redirect_login(request):
 	return {
-		'__template__': 'login.html'
+		'__template__': 'user_login.html',
+		'action': '/api/user/authenticate'
 	}
 
-@post('/api/authenticate')
-def api_authenticate_user(*, email, password):
+@post('/api/user/authenticate')
+def api_user_authenticate(*, email, password):
 	if not email or not email.strip():
 		raise APIValueError('email', 'email is Null')
 	if not _RE_EMAIL.match(email):
 		raise APIValueError('email', 'email is not format')
 	if not password or not password.strip():
 		raise APIValueError('password', 'password is Null')
-	users = yield from User(email=email).find()
+	users = (yield from User(email=email).find())['data']
 	if len(users) == 0:
 		raise APIValueError('email', 'email is not in use')
 	user = users[0]
@@ -123,16 +125,16 @@ def redirect_logout(request):
 
 	return rep
 
-@get('/manage/blog/edit')
-def redirect_edit_blog(request):
+@get('/manage/blog/edit/{id}')
+def redirect_blog_edit(request, *, id):
 	return {
-		'__template__': 'edit_blog.html',
-		'id': '',
+		'__template__': 'blog_edit.html',
+		'id': id,
 		'action': '/api/blogs'
 	}
 
 @post('/api/blogs')
-def api_edit_blog(request, *, name, summary, content):
+def api_blog_edit(request, *, name, summary, content):
 	if request.__user__ is None:
 		raise APIError('blog', 'edit', 'edit blog before login')
 	if not name or not name.strip():
@@ -157,6 +159,39 @@ def api_edit_blog(request, *, name, summary, content):
 
 	return rep
 
+@get('/manage/blogs')
+def redirect_blog_list(request):
+	return {
+		'__template__': 'blog_list.html',
+		'action': '/api/blogs'
+	}
+
+@get('/api/blogs')
+def api_blog_list(*, page='0'):
+	try:
+		if int(page) < 0:
+			page = 0
+	except Exception as e:
+		logging.exception(e)
+		page = 0
+	page = int(page)
+	pagesize = 5
+	blogs = (yield from Blog().find(index=page, limit=pagesize))
+
+	return {"blogs":blogs['data'], "page":blogs['info']}
+
+@get('/manage/blog/detail/{id}')
+def redirect_blog_detail(*, id):
+	return {
+		'__template__': 'blog_detail.html',
+		'action': '/api/blog/' + id
+	}
+
+@get('/api/blog/{id}')
+def api_blog_detail(*, id=0):
+	blogs = (yield from Blog(id=id).find())
+
+	return {'blog': blogs['data'][0]}
 
 if __name__ == '__main__':
 	print(__doc__ % __author__)

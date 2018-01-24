@@ -150,6 +150,7 @@ class Model(dict, metaclass=ModelMetaclass):
 				continue
 			params.append('%s = ?' % field)
 			args.append(value)
+		args.append(self.getValue(self.__primary_key__))
 		sql = 'update %s set %s where %s' % (self.__table__, ','.join(params), '%s = ?' % self.__primary_key__)
 		logging.info('SQL: %s' % sql)
 		logging.info('ARG: %s' % args)
@@ -159,7 +160,7 @@ class Model(dict, metaclass=ModelMetaclass):
 		return res
 
 	@asyncio.coroutine
-	def find(self, offset=0, limit=0):
+	def find(self, index=0, limit=0):
 		params = ['1 = 1']
 		args = []
 		for field in self.__fields__:
@@ -169,10 +170,22 @@ class Model(dict, metaclass=ModelMetaclass):
 			params.append('%s = ?' % field)
 			args.append(value)
 		logging.info('ARG: %s' % args)
+		count = yield from select('select count(%s) _num_ from %s where %s' % (self.__primary_key__, self.__table__, ' and '.join(params)), args)
 		if limit <= 0:
-			count = yield from select('select count(%s) _num_ from %s where %s' % (self.__primary_key__, self.__table__, ' and '.join(params)), args)
 			limit = count[0][0]
-		sql = 'select %s from %s where %s limit %d offset %s' % (','.join(self.__fields__), self.__table__, ' and '.join(params), limit, offset)
+			index = 0
+		if limit == 0:
+			return {
+				'info': {
+					'has_next': False,
+					'has_previous': False,
+					'page_index': index,
+					'page_count': 0,
+					'item_count': 0
+				},
+				'data': []
+			}
+		sql = 'select %s from %s where %s limit %d offset %s' % (','.join(self.__fields__), self.__table__, ' and '.join(params), limit, index * limit)
 		logging.info('SQL: %s' % sql)
 		logging.info('ARG: %s' % args)
 		res = yield from select(sql, args)
@@ -181,8 +194,34 @@ class Model(dict, metaclass=ModelMetaclass):
 			return None
 		rows = self.rows2mapping(res)
 		logging.info('rows: %s' % rows)
-		return [Model(** row) for row in rows]
+		item_count = count[0][0]
+		page_count = (item_count // limit + 1) if (item_count % limit) else (item_count // limit)
+		return {
+			'info': {
+				'has_next': False if index == page_count else True,
+				'has_previous': False if index == 0 else True,
+				'page_index': index,
+				'page_count': page_count,
+				'item_count': item_count
+			},
+			'data': [Model(** row) for row in rows]
+		}
+#		return [Model(** row) for row in rows]
+	@asyncio.coroutine
+	def findCount(self):
+		params = ['1 = 1']
+		args = []
+		for field in self.__fields__:
+			value = self.getValue(field)
+			if value is None:
+				continue
+			params.append('%s = ?' % field)
+			args.append(value)
+		logging.info('ARG: %s' % args)
+		count = yield from select('select count(%s) _num_ from %s where %s' % (self.__primary_key__, self.__table__, ' and '.join(params)), args)
 
+		logging.info('count: %s' % count[0][0])
+		return count[0][0];
 	
 if __name__ == '__main__':
 	print(__doc__ % __author__)
