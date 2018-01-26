@@ -27,7 +27,9 @@ _RE_EMAIL = re.compile(r'^[0-9a-z\-\_\.]+\@[0-9a-z\-\_]+(\.[0-9a-z\-\_]+){1,4}$'
 
 @get('/test')
 def index(request):
-	return web.Response(body=b'<h1>test</h1>', content_type='text/html')
+	return {
+		'__template__': 'users.html'
+	}
 
 @get('/')
 def api_get_blogs(request):

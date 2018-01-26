@@ -21,13 +21,13 @@
 		$('#vm').show();
 	}
 	$(function () {
-		getJSON('{{action}}'+, 
+		getJSON('{{action}}', 
 				function(err, data){
 					if(err){
 						return fatal(err)
 					}
 					$('#loading').hide()
-					initVM(data)
+					initVM(data.blog)
 				});
 	});
 </script>
@@ -41,6 +41,13 @@
 	</div>
 
 	<div id="vm" class="uk-width-2-3">
+		<article class="uk-artical">
+			<h2 v-text="name"></h2>
+			<h3 v-text="summary"></h3>
+			<p class="uk-artical-meta">发表于: <span v-text="create_time"></span></p>
+			<p v-text="content"></p>
+		</article>
+		<hr class="uk-artical-divider">
 	</div>
 
 {% endblock %}

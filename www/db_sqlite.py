@@ -27,10 +27,11 @@ def get_connect(db = DB_SRC, max = MAX_CONN):
 	global _coutnt
 	_coutnt += 1
 	try:
-		if _coutnt <= max:
-			conn = sqlite3.connect(db)
-		else:
-			raise APIConnectFullError(db, '%s connection is full' % db)
+		conn = sqlite3.connect(db)
+#		if _coutnt <= max:
+#			conn = sqlite3.connect(db)
+#		else:
+#			raise APIConnectFullError(db, '%s connection is full' % db)
 	except Exception as e:
 		logging.warning(e)
 		conn = None
