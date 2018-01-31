@@ -14,7 +14,7 @@
 					event.preventDefault();
 					$form = $('#vm').find('form');
 					console.log(this.$data);
-					$form.postJSON('{{action}}', this.$data, function(err, r){
+					$form.postJSON('/api/blogs', this.$data, function(err, r){
 						if(err){
 							return $form.showFormError(err)
 						}
@@ -28,22 +28,24 @@
 	$(function () {
 		var ID = '{{id}}', action = '{{action}}';
 		if(ID > 0){
-			getJSON(action + '/' + ID, function(err, blog){
+			getJSON(action + '/' + ID, function(err, data){
 					if(err){
 						return fatal(err)
 					}
-					$('#loading').hide()
-					initVM(blog)
+					$('#loading').hide();
+					console.log(data.blog)
+					initVM(data.blog);
 				})
 		}else {
 			$('#loading').hide()
 			initVM(
 				{
+					id: '',
 					name: '',
 					summary: '',
 					content: ''
 				}
-			)
+			);
 		}
 		
 	});

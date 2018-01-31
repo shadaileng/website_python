@@ -132,11 +132,11 @@ def redirect_blog_edit(request, *, id):
 	return {
 		'__template__': 'blog_edit.html',
 		'id': id,
-		'action': '/api/blogs'
+		'action': '/api/blog'
 	}
 
 @post('/api/blogs')
-def api_blog_edit(request, *, name, summary, content):
+def api_blog_edit(request, *, id, name, summary, content):
 	if request.__user__ is None:
 		raise APIError('blog', 'edit', 'edit blog before login')
 	if not name or not name.strip():
@@ -147,8 +147,11 @@ def api_blog_edit(request, *, name, summary, content):
 		raise APIValueError('content', 'content is Null')
 
 	blog = Blog(name=name, user_id=request.__user__.id, summary=summary, content=content)
-
-	res = yield from blog.save()
+	if id:
+		blog.id = id
+		res = yield from blog.update()
+	else:
+		res = yield from blog.save()
 
 	rep = web.Response()
 	rep.content_type = 'application/json'
@@ -192,7 +195,6 @@ def redirect_blog_detail(*, id):
 @get('/api/blog/{id}')
 def api_blog_detail(*, id=0):
 	blogs = (yield from Blog(id=id).find())
-
 	return {'blog': blogs['data'][0]}
 
 if __name__ == '__main__':
