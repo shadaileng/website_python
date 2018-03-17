@@ -315,8 +315,8 @@ def auth_factory(app, handler):
 			if user:
 				logging.info('set current user: %s' % user.email)
 				request.__user__ = user
-		if request.path.startswith('/manage/') and (request.__user__ is None or request.__user__.admin == '0'):
-			return web.HTTPFound('/login')
+#		if request.path.startswith('/manage/') and (request.__user__ is None or request.__user__.admin == '0'):
+#			return web.HTTPFound('/login')
 		return (yield from handler(request))
 	return auth	
 
