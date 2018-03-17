@@ -86,11 +86,17 @@ def run():
 #	res = yield from execute('create table blog(id number(50) primary key, user_id number(50), name varchar(50), summary varchar(250), content varchar(2500), create_time varchar(50))')
 #	print(res)
 	
-	execute('create table user(id number(50) primary key, name varchar(50), password varchar(50), email varchar(50), admin number(1), image varchar(500), create_time varchar(50))')
+	res = yield from execute('create table user(id number(50) primary key, name varchar(50), password varchar(50), email varchar(50), admin number(1), image varchar(500), create_time varchar(50))')
+	
+	print('create user: %s' % res)
+	
+	res = yield from execute('create table blog(id number(50) primary key, user_id number(50), name varchar(50), summary varchar(50), content varchar(255), create_time varchar(50))')
 
-	execute('create table blog(id number(50) primary key, user_id number(50), name varchar(50), summary varchar(50), content varchar(255), create_time varchar(50))')
-
-	execute('create table comment(id number(50) primary key, user_id number(50), blog_id number(50), content varchar(255), create_time varchar(50))')
+	print('create blog: %s' % res)
+	
+	res = yield from execute('create table comment(id number(50) primary key, user_id number(50), blog_id number(50), content varchar(255), create_time varchar(50))')
+	
+	print('create comment: %s' % res)
 	
 	rs = yield from select('select * from blog', ())
 	for r in rs:
