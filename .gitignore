@@ -1,3 +1,4 @@
 *-project
 *-workspace
 venv/
+*/__pycache__/
