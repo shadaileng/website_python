@@ -36,7 +36,9 @@ def api_get_blogs(request):
 	
 	blogs = (yield from Blog().find())['data']
 	for blog in blogs:
-		blog.create_time = datetime.strptime(blog.create_time, '%Y-%m-%d %H:%M:%S,%f').timestamp()
+		blog.createtime = datetime.strptime(blog.createtime, '%Y-%m-%d %H:%M:%S,%f').timestamp()
+		user = (yield from User(id = blog.userid).find())['data'][0]
+		blog.author = user
 
 	return {
 		'__template__': 'blogs.html',
@@ -146,7 +148,7 @@ def api_blog_edit(request, *, id, name, summary, content):
 	if not content or not content.strip():
 		raise APIValueError('content', 'content is Null')
 
-	blog = Blog(name=name, user_id=request.__user__.id, summary=summary, content=content)
+	blog = Blog(name=name, userid=request.__user__.id, summary=summary, content=content, updatetime=datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f'))
 	if id:
 		blog.id = id
 		res = yield from blog.update()
@@ -181,9 +183,15 @@ def api_blog_list(*, page='0'):
 		page = 0
 	page = int(page)
 	pagesize = 5
-	blogs = (yield from Blog().find(index=page, limit=pagesize))
+	data = (yield from Blog().find(index=page, limit=pagesize))
+	blogs = data['data']
+	info = data['info']
+	for blog in blogs:
+#		blog.createtime = datetime.strptime(blog.createtime, '%Y-%m-%d %H:%M:%S,%f').timestamp()
+		user = (yield from User(id = blog.userid).find())['data'][0]
+		blog.author = user
 
-	return {"blogs":blogs['data'], "page":blogs['info']}
+	return {"blogs":blogs, "page":info}
 
 @get('/manage/blog/detail/{id}')
 def redirect_blog_detail(*, id):
@@ -194,8 +202,12 @@ def redirect_blog_detail(*, id):
 
 @get('/api/blog/{id}')
 def api_blog_detail(*, id=0):
-	blogs = (yield from Blog(id=id).find())
-	return {'blog': blogs['data'][0]}
+	blogs = (yield from Blog(id=id).find())['data']
+	for blog in blogs:
+#		blog.createtime = datetime.strptime(blog.createtime, '%Y-%m-%d %H:%M:%S,%f').timestamp()
+		user = (yield from User(id = blog.userid).find())['data'][0]
+		blog.author = user
+	return {'blog': blogs[0]}
 
 if __name__ == '__main__':
 	print(__doc__ % __author__)

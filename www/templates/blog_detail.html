@@ -44,7 +44,8 @@
 		<article class="uk-artical">
 			<h2 v-text="name"></h2>
 			<h3 v-text="summary"></h3>
-			<p class="uk-artical-meta">发表于: <span v-text="create_time"></span></p>
+			<p>作者: <span v-text="author.name"></p>
+			<p class="uk-artical-meta"> 发表于: <span v-text="createtime"></span></p>
 			<p v-text="content"></p>
 		</article>
 		<hr class="uk-artical-divider">

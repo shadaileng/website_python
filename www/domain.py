@@ -23,25 +23,28 @@ class User(Model):
 	name = StringField(name='name')
 	password = StringField(name='password')
 	email = StringField(name='email')
-	admin = IntegeField(name='admin', column_type='Number(1)', default=0)
+	admin = IntegeField(name='admin', column_type='Number(2)', default=0)
 	image = StringField(name='image')
-	create_time = StringField(name='create_time', default=datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f'))
+	createtime = StringField(name='createtime', default=datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f'))
+	updatetime = StringField(name='updatetime', default=datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f'))
 #	create_time = StringField(name='create_time', default=datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S.%f'))
 
 class Blog(Model):
 	id = IntegeField(name = 'id', primary_key=True, default=next_id)
-	user_id = IntegeField(name = 'id')
+	userid = IntegeField(name = 'userid')
 	name = StringField(name='name')
-	summary = StringField(name='summary')
-	content = StringField(name='content')
-	create_time = StringField(name='create_time', default=datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f'))
+	summary = StringField(name='summary', column_type='Varchar(256)')
+	content = StringField(name='content', column_type='Varchar(1024)')
+	createtime = StringField(name='createtime', default=datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f'))
+	updatetime = StringField(name='updatetime', default=datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f'))
 
 class Comment(Model):
 	id = IntegeField(name = 'id', primary_key=True, default=next_id)
-	user_id = IntegeField(name = 'id')
-	blog_id = IntegeField(name = 'id')
-	content = StringField(name='content')
-	create_time = StringField(name='create_time', default=datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f'))
+	userid = IntegeField(name = 'userid')
+	blogid = IntegeField(name = 'blogid')
+	content = StringField(name='content', column_type='Varchar(140)')
+	createtime = StringField(name='createtime', default=datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f'))
+	updatetime = StringField(name='updatetime', default=datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f'))
 		
 
 def run():

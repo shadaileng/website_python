@@ -69,8 +69,8 @@ if __name__ == '__main__':
 		logging.info('Usage: ./pymonitor xx.py')
 		exit(0)
 
-	if argv[0] != 'python':
-		argv.insert(0, 'python')
+	if argv[0] != 'python3':
+		argv.insert(0, 'python3')
 
 	command = argv
 	path = os.path.abspath('./www')

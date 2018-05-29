@@ -60,7 +60,7 @@ class ModelMetaclass(type):
 		attrs['__mappings__'] = mappings
 		attrs['__primary_key__'] = primary_key
 		attrs['__fields__'] = fields
-		attrs['__table__'] = name
+		attrs['__table__'] = name.upper()
 		return type.__new__(cls, name, bases, attrs)
 
 class Model(dict, metaclass=ModelMetaclass):
@@ -109,10 +109,11 @@ class Model(dict, metaclass=ModelMetaclass):
 		for field in self.__fields__:
 			params.append('?')
 			args.append(self.getValueDefault(field))
-		
-		sql = 'insert into %s(%s) values(%s)' % (self.__table__, ','.join(self.__fields__), ','.join(params))
-		logging.info('SQL: %s' % sql)
-		logging.info('ARG: %s' % args)
+		logging.info('===============================================');
+		sql = 'insert into %s(%s) values(%s)' % (self.__table__, ','.join(list(map(lambda x: x.upper(), self.__fields__))), ','.join(params))
+		logging.info('SQL : %s' % sql)
+		logging.info('ARGS: %s' % args)
+		logging.info('===============================================');
 		res = yield from execute(sql, args)
 		print('res: %s' % res)
 		if res == 0:
@@ -129,9 +130,11 @@ class Model(dict, metaclass=ModelMetaclass):
 				continue
 			params.append('%s = ?' % field)
 			args.append(value)
+		logging.info('===============================================');
 		sql = 'delete from %s where %s' % (self.__table__, ','.join(params))
-		logging.info('SQL: %s' % sql)
-		logging.info('ARG: %s' % args)
+		logging.info('SQL : %s' % sql)
+		logging.info('ARGS: %s' % args)
+		logging.info('===============================================');
 		res = yield from execute(sql, args)
 		if res == 0:
 			logging.info('delete 0 row')
@@ -151,9 +154,11 @@ class Model(dict, metaclass=ModelMetaclass):
 			params.append('%s = ?' % field)
 			args.append(value)
 		args.append(self.getValue(self.__primary_key__))
+		logging.info('===============================================');
 		sql = 'update %s set %s where %s' % (self.__table__, ','.join(params), '%s = ?' % self.__primary_key__)
-		logging.info('SQL: %s' % sql)
-		logging.info('ARG: %s' % args)
+		logging.info('SQL : %s' % sql)
+		logging.info('ARGS: %s' % args)
+		logging.info('===============================================');
 		res = yield from execute(sql, args)
 		if res == 0:
 			logging.info('update 0 row')
@@ -185,7 +190,7 @@ class Model(dict, metaclass=ModelMetaclass):
 				},
 				'data': []
 			}
-		sql = 'select %s from %s where %s limit %d offset %s' % (','.join(self.__fields__), self.__table__, ' and '.join(params), limit, index * limit)
+		sql = 'select %s from %s where %s limit %d offset %s' % (','.join(list(map(lambda x: x.upper(), self.__fields__))), self.__table__, ' and '.join(params), limit, index * limit)
 		logging.info('SQL: %s' % sql)
 		logging.info('ARG: %s' % args)
 		res = yield from select(sql, args)
