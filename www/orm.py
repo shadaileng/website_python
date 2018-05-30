@@ -95,33 +95,36 @@ class Model(dict, metaclass=ModelMetaclass):
 		logging.info('fields: %s' % fields)
 		logging.info('rows: %s' % rows)
 		for row in rows:
-			logging.info(type(row))
-			mapping = {}
-			for index, value in enumerate(fields):
-				mapping[value] = row[index]
-			mappings.append(mapping)
+			mappings.append(dict(zip(fields, row)))
+			# logging.info(type(row))
+			# mapping = {}
+			# for index, value in enumerate(fields):
+			# 	mapping[value] = row[index]
+			# mappings.append(mapping)
+		logging.info('mappings: %s' % mappings)
 		return mappings
 	
 	@asyncio.coroutine
 	def save(self):
+		logging.info('=======================save=======================');
 		params = []
 		args = []
 		for field in self.__fields__:
 			params.append('?')
 			args.append(self.getValueDefault(field))
-		logging.info('===============================================');
 		sql = 'insert into %s(%s) values(%s)' % (self.__table__, ','.join(list(map(lambda x: x.upper(), self.__fields__))), ','.join(params))
 		logging.info('SQL : %s' % sql)
 		logging.info('ARGS: %s' % args)
-		logging.info('===============================================');
 		res = yield from execute(sql, args)
-		print('res: %s' % res)
+		logging.info('save: %s' % res)
 		if res == 0:
 			logging.info('insert 0 row')
+		logging.info('===============================================');
 		return res
 
 	@asyncio.coroutine
 	def delete(self):
+		logging.info('=======================delete=====================');
 		params = []
 		args = []
 		for field in self.__fields__:
@@ -130,21 +133,22 @@ class Model(dict, metaclass=ModelMetaclass):
 				continue
 			params.append('%s = ?' % field)
 			args.append(value)
-		logging.info('===============================================');
 		sql = 'delete from %s where %s' % (self.__table__, ','.join(params))
 		logging.info('SQL : %s' % sql)
 		logging.info('ARGS: %s' % args)
-		logging.info('===============================================');
 		res = yield from execute(sql, args)
+		logging.info('delete: %s' % res)
 		if res == 0:
 			logging.info('delete 0 row')
+		logging.info('===============================================');
 		return res
 
 	@asyncio.coroutine
 	def update(self):
+		logging.info('=====================update=====================');
 		params = []
 		args = []
-		print(self.getValue(self.__primary_key__))
+		logging.info(self.getValue(self.__primary_key__))
 		if self.getValue(self.__primary_key__) is None:
 			raise APIValueError(self.__primary_key__, 'field %s can not be null' % self.__primary_key__)
 		for field in self.__fields__:
@@ -154,18 +158,19 @@ class Model(dict, metaclass=ModelMetaclass):
 			params.append('%s = ?' % field)
 			args.append(value)
 		args.append(self.getValue(self.__primary_key__))
-		logging.info('===============================================');
 		sql = 'update %s set %s where %s' % (self.__table__, ','.join(params), '%s = ?' % self.__primary_key__)
 		logging.info('SQL : %s' % sql)
 		logging.info('ARGS: %s' % args)
-		logging.info('===============================================');
 		res = yield from execute(sql, args)
+		logging.info('update: %s' % res)
 		if res == 0:
 			logging.info('update 0 row')
+		logging.info('===============================================');
 		return res
 
 	@asyncio.coroutine
 	def find(self, index=0, limit=0):
+		logging.info('======================find========================');
 		params = ['1 = 1']
 		args = []
 		for field in self.__fields__:
@@ -174,46 +179,48 @@ class Model(dict, metaclass=ModelMetaclass):
 				continue
 			params.append('%s = ?' % field)
 			args.append(value)
+		sql = 'select count(%s) _num_ from %s where %s' % (self.__primary_key__, self.__table__, ' and '.join(params))
+		logging.info('sql: %s' % sql)
 		logging.info('ARG: %s' % args)
-		count = yield from select('select count(%s) _num_ from %s where %s' % (self.__primary_key__, self.__table__, ' and '.join(params)), args)
-		if limit <= 0:
-			limit = count[0][0]
+		count = yield from select(sql, args)
+		logging.info('find count: %s' % count)
+		item_count = 0
+		if count is not None:
+			if limit <= 0:
+				limit = count[0][0]
+				index = 0
+			item_count = count[0][0]
+		else:
+			limit = 0
 			index = 0
-		if limit == 0:
-			return {
-				'info': {
-					'has_next': False,
-					'has_previous': False,
-					'page_index': index,
-					'page_count': 0,
-					'item_count': 0
-				},
-				'data': []
-			}
+
 		sql = 'select %s from %s where %s limit %d offset %s' % (','.join(list(map(lambda x: x.upper(), self.__fields__))), self.__table__, ' and '.join(params), limit, index * limit)
 		logging.info('SQL: %s' % sql)
 		logging.info('ARG: %s' % args)
 		res = yield from select(sql, args)
+		logging.info('find: %s' % res)
 		if res is None:
 			logging.info('find 0 row')
-			return None
 		rows = self.rows2mapping(res)
 		logging.info('rows: %s' % rows)
-		item_count = count[0][0]
-		page_count = (item_count // limit + 1) if (item_count % limit) else (item_count // limit)
-		return {
-			'info': {
-				'has_next': False if index == page_count else True,
-				'has_previous': False if index == 0 else True,
-				'page_index': index,
-				'page_count': page_count,
-				'item_count': item_count
-			},
-			'data': [Model(** row) for row in rows]
-		}
-#		return [Model(** row) for row in rows]
+		page_count = 0 if limit == 0 else (item_count // limit + 1) if (item_count % limit) else (item_count // limit)
+		returnObj = {
+						'info': {
+							'has_next': False if index == page_count else True,
+							'has_previous': False if index == 0 else True,
+							'page_index': index,
+							'page_count': page_count,
+							'item_count': item_count
+						},
+						'data': [Model(** row) for row in rows]
+					}
+		logging.info("return: %s" % returnObj)
+		logging.info('===============================================')
+		return returnObj
+
 	@asyncio.coroutine
 	def findCount(self):
+		logging.info('====================findCount=====================')
 		params = ['1 = 1']
 		args = []
 		for field in self.__fields__:
@@ -222,11 +229,18 @@ class Model(dict, metaclass=ModelMetaclass):
 				continue
 			params.append('%s = ?' % field)
 			args.append(value)
-		logging.info('ARG: %s' % args)
-		count = yield from select('select count(%s) _num_ from %s where %s' % (self.__primary_key__, self.__table__, ' and '.join(params)), args)
+		sql = 'select count(%s) _num_ from %s where %s' % (self.__primary_key__, self.__table__, ' and '.join(params))
 
-		logging.info('count: %s' % count[0][0])
-		return count[0][0];
+		logging.info('SQL: %s' % sql)
+		logging.info('ARG: %s' % args)
+		count = yield from select(sql, args)
+		logging.info('count: %s' % count)
+		if count is None:
+			count = 0
+		else:
+			count = count[0][0]
+		logging.info('===============================================')
+		return count;
 	
 if __name__ == '__main__':
 	print(__doc__ % __author__)
