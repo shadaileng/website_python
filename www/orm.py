@@ -174,8 +174,10 @@ class Model(dict, metaclass=ModelMetaclass):
 				continue
 			params.append('%s = ?' % field)
 			args.append(value)
+		logging.info('===============================================');
 		logging.info('ARG: %s' % args)
 		count = yield from select('select count(%s) _num_ from %s where %s' % (self.__primary_key__, self.__table__, ' and '.join(params)), args)
+		logging.info('===============================================');
 		if limit <= 0:
 			limit = count[0][0]
 			index = 0
@@ -190,9 +192,11 @@ class Model(dict, metaclass=ModelMetaclass):
 				},
 				'data': []
 			}
+		logging.info('===============================================');
 		sql = 'select %s from %s where %s limit %d offset %s' % (','.join(list(map(lambda x: x.upper(), self.__fields__))), self.__table__, ' and '.join(params), limit, index * limit)
 		logging.info('SQL: %s' % sql)
 		logging.info('ARG: %s' % args)
+		logging.info('===============================================');
 		res = yield from select(sql, args)
 		if res is None:
 			logging.info('find 0 row')
@@ -222,8 +226,10 @@ class Model(dict, metaclass=ModelMetaclass):
 				continue
 			params.append('%s = ?' % field)
 			args.append(value)
+		logging.info('===============================================');
 		logging.info('ARG: %s' % args)
 		count = yield from select('select count(%s) _num_ from %s where %s' % (self.__primary_key__, self.__table__, ' and '.join(params)), args)
+		logging.info('===============================================');
 
 		logging.info('count: %s' % count[0][0])
 		return count[0][0];
