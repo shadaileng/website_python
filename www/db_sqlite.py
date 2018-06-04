@@ -76,7 +76,7 @@ def execute(sql, args = (), db = DB_SRC):
 	logging.info('change rows: %d' % change)
 	return change
 
-def run():
+def run(sql):
 #	res = yield from execute('create table user(id number(50) primary key, name varchar(50), password varchar(50), email varchar(50), admin number(1), image varchar(500), create_time varchar(50))')
 #	
 #	print('create user: %s' % res)
@@ -93,24 +93,17 @@ def run():
 #	
 #	print('create comment: %s' % res)
 	
-	rs = yield from select('select * from blog', ())
+	rs = yield from select(sql, ())
 	for r in rs:
 		print(r)
 
 def start_server():
 	loop = asyncio.get_event_loop()
-	loop.run_until_complete(run())
-	loop.run_forever()
+	tasks = [run(sql) for sql in ['select * from blog', 'select * from user']]
+	loop.run_until_complete(asyncio.wait(tasks))
+	loop.close()
 
 if __name__ == '__main__':
 	print(__doc__ % __author__)
 	
-#	start_server()
-	yield from run()
-	
-'''
-	for i in range(12):
-		c = get_connect()
-		print(c)
-'''
-
+	start_server()

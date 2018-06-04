@@ -47,7 +47,7 @@ class Comment(Model):
 	updatetime = StringField(name='updatetime', default=datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f'))
 
 class File(Model):
-	hashpath = StringField(name='hashpath')
+	hashpath = StringField(name='hashpath', primary_key=True)
 	path = StringField(name='path')
 	filetype = StringField(name='filetype')
 	size = StringField(name='size')
@@ -55,37 +55,19 @@ class File(Model):
 	mtime = StringField(name='mtime')
 	ctime = StringField(name='ctime')	
 
-def run():
-#	user = User(name='qpf3', email='qpf0510@qq.com')
-#	res = yield from user.save()
-#	print(res)
-	rows = yield from User().find()
+
+def run(Object):
+	rows = yield from Object().find()
 	for row in rows:
 		print(row)
 
 def start_server():
 	loop = asyncio.get_event_loop()
-	loop.run_until_complete(run())
-	loop.run_forever()
+	tasks = [run(obj) for obj in [User, Blog, Comment, File]]
+	loop.run_until_complete(asyncio.wait(tasks))
+	loop.close()
 
 if __name__ == '__main__':
 	print(__doc__ % __author__)
 	
 	start_server()
-	
-#	user = User(name='shadaileng', password='123456', email='qpf0510@qq.com', admin=0, image='./res/tumblr.png')
-#	user.save()
-	
-#	user = User(name='shadileng', email='qpf0510@qq.com')
-#	user.delete()
-#	rows = User().find()
-#	for row in rows:
-#		print(row)
-	
-#	user = User(id = '2', name='shadileng', email='qpf0510@qq.com')
-#	user.update()
-	
-#	user = User(name='qpf', password='123456', email='qpf0510@qq.com', admin=0, image='./res/tumblr.png')
-#	print(user)
-#	res = user.save()
-#	print('res: %s' % res)

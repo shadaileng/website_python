@@ -13,7 +13,7 @@ __author__ = 'Shadaileng'
 import logging; logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s line:%(lineno)d %(filename)s %(funcName)s >>> %(message)s')
 
 import asyncio
-from apis import APIValueError
+from apis import APIValueError, APIError
 from db_sqlite import select, execute
 
 class Field(object):
