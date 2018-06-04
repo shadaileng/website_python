@@ -45,7 +45,15 @@ class Comment(Model):
 	content = StringField(name='content', column_type='Varchar(140)')
 	createtime = StringField(name='createtime', default=datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f'))
 	updatetime = StringField(name='updatetime', default=datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f'))
-		
+
+class File(Model):
+	hashpath = StringField(name='hashpath')
+	path = StringField(name='path')
+	filetype = StringField(name='filetype')
+	size = StringField(name='size')
+	atime = StringField(name='atime')
+	mtime = StringField(name='mtime')
+	ctime = StringField(name='ctime')	
 
 def run():
 #	user = User(name='qpf3', email='qpf0510@qq.com')

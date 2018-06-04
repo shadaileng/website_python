@@ -77,26 +77,21 @@ def execute(sql, args = (), db = DB_SRC):
 	return change
 
 def run():
-#	rs = yield from select('select count(id) _num_ from User', ())
-#	print(rs)
-#	res = yield from execute('delete from user')
-#	rs = yield from select('select * from User', ())
-#	for r in rs:
-#		print(r)
-#	res = yield from execute('create table blog(id number(50) primary key, user_id number(50), name varchar(50), summary varchar(250), content varchar(2500), create_time varchar(50))')
-#	print(res)
-	
-	res = yield from execute('create table user(id number(50) primary key, name varchar(50), password varchar(50), email varchar(50), admin number(1), image varchar(500), create_time varchar(50))')
-	
-	print('create user: %s' % res)
-	
-	res = yield from execute('create table blog(id number(50) primary key, user_id number(50), name varchar(50), summary varchar(50), content varchar(255), create_time varchar(50))')
+#	res = yield from execute('create table user(id number(50) primary key, name varchar(50), password varchar(50), email varchar(50), admin number(1), image varchar(500), create_time varchar(50))')
+#	
+#	print('create user: %s' % res)
+#	
+#	res = yield from execute('create table blog(id number(50) primary key, user_id number(50), name varchar(50), summary varchar(50), content varchar(255), create_time varchar(50))')
 
-	print('create blog: %s' % res)
-	
-	res = yield from execute('create table comment(id number(50) primary key, user_id number(50), blog_id number(50), content varchar(255), create_time varchar(50))')
-	
-	print('create comment: %s' % res)
+#	print('create blog: %s' % res)
+#	
+#	res = yield from execute('create table comment(id number(50) primary key, user_id number(50), blog_id number(50), content varchar(255), create_time varchar(50))')
+#	
+#	print('create comment: %s' % res)
+#	
+#	res = yield from execute('create table file(hashpath varchar(100), path varchar(100), filetype varchar(50), size number(20), atime varchar(50), mtime varchar(50), ctime varchar(50))')
+#	
+#	print('create comment: %s' % res)
 	
 	rs = yield from select('select * from blog', ())
 	for r in rs:
@@ -110,22 +105,8 @@ def start_server():
 if __name__ == '__main__':
 	print(__doc__ % __author__)
 	
-#	res = execute('create table user(id number(50) primary key, name varchar(50), password varchar(50), email varchar(50), admin number(1), image varchar(500), create_time varchar(50))')
-	
-#	res = execute('insert into user(id, name, password, email, admin, image, create_time) values(2, "chik", "123456", "qpf0510@qq.com", 0, "./res/tumblr.com", "2018-01-13 20:13:32")')
-	
-#	execute('update user set create_time=?, email=? where id = ?', ('2018-01-13 20:13:32', 'qpf0510@126.com', 2))
-
-#	execute('insert into user(id, name, password, email, admin, image, create_time) values(?, ?, ?, ?, ?, ?, ?)', (3, "qpf", "123456", "qpf0510@163.com", 0, "./res/tumblr.com", "2018-01-13 20:23:32"))
-	
-#	rs = select('select * from user where id = ?', (3,))
-	
-	start_server()
-	
-#	rs = select('select * from user', ())
-#	for r in rs:
-#		print(r)
-#	print('res: %s' % res)
+#	start_server()
+	yield from run()
 	
 '''
 	for i in range(12):
