@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}图片列表{% endblock %}
+
+{% block beforehead %}
+
+<script type="text/javascript">
+	function initVM(data) {
+		var vm = new Vue({
+			el: '#vm',
+			data: {
+				images: data.images,
+				page: data.page
+			},
+			methods: { }
+		});
+		$('#vm').show();
+	}
+	$(function () {
+		getJSON('{{action}}/0',  
+				function(err, data){
+					if(err){
+						return fatal(err)
+					}
+					$('#loading').hide()
+					initVM(data)
+				});
+	});
+</script>
+
+{% endblock %}
+
+{% block content %}
+	
+	<div id='loading' class="uk-width-1-1, uk-text-center">
+		<span><i class="uk-icon-spinner uk-icon-medium uk-icon-spin"></i>正在加载 ... </span>
+	</div>
+
+	<div id="vm" class="uk-grid" data-uk-grid-match="{target: '.uk-panel'}">
+		<div v-repeat="image: images" class="uk-width-1-5 uk-margin-bottom">
+			<div class="uk-panel uk-panel-box ">
+				<h6 class="uk-panel-title" v-text="image.name"></h3>
+				<div class="uk-panel-badge">hot</div>
+				<img class="" v-attr="src: '/api/file/'+image.hashpath"></img>
+			</div>
+		</div>
+	</div>
+	<div v-component="pagination" v-with="page"></div>
+
+{% endblock %}

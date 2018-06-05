@@ -130,7 +130,7 @@ class Model(dict, metaclass=ModelMetaclass):
 		if not res:
 			logging.info('table %s not exits' % self.__table__)
 			# print('%s %s' % (key, val) for key, val in self.__mappings__)
-			sql = 'CREATE TABLE %s( %s )' % (self.__table__, ',' .join(list('%s %s %s %s' % (key, val.column_type, 'PRIMARY KEY AUTOINCREMENT' if val.column_type == 'INTEGER' else 'PRIMARY KEY' if val.primary_key else '', val.default if isinstance(val.default, str) else '') for key, val in self.__mappings__.items())))
+			sql = 'CREATE TABLE %s( %s )' % (self.__table__, ',' .join(list('%s %s %s %s' % (key, val.column_type, 'PRIMARY KEY AUTOINCREMENT' if val.column_type == 'INTEGER' else 'PRIMARY KEY' if val.primary_key else '', 'DEFAULT (%s)' % val.default if isinstance(val.default, str) else '') for key, val in self.__mappings__.items())))
 			logging.info('SQL: %s' % sql)
 			res = yield from execute(sql)
 			logging.info('create: %s' % res)
@@ -243,12 +243,12 @@ class Model(dict, metaclass=ModelMetaclass):
 		logging.info('rows: %s' % rows)
 		page_count = 0 if limit == 0 else (item_count // limit + 1) if (item_count % limit) else (item_count // limit)
 		returnObj = {
-						'info': {
-							'has_next': False if index == page_count else True,
-							'has_previous': False if index == 0 else True,
-							'page_index': index,
-							'page_count': page_count,
-							'item_count': item_count
+						"info": {
+							"has_next": index != page_count,
+							"has_previous": index != 0,
+							"page_index": index,
+							"page_count": page_count,
+							"item_count": item_count
 						},
 						'data': [Model(** row) for row in rows]
 					}

@@ -15,7 +15,7 @@ import logging; logging.basicConfig(level=logging.INFO, format='%(asctime)s %(le
 from aiohttp import web
 from datetime import datetime
 from core import get, post, user2cookie, cookie2user
-from domain import User, Blog, Comment, next_id
+from domain import User, Blog, Comment, File, next_id
 from apis import APIError, APIValueError
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -209,10 +209,39 @@ def api_blog_detail(*, id=0):
 		blog.author = user
 	return {'blog': blogs[0]}
 
+@get('/api/images')
+def redirect_image_list(request):
+	return {
+		'__template__': 'images.html',
+		'action': '/api/load/images'
+	}
 
-@get('/api/file')
-def api_file(request):
-	rep = web.FileResponse('G:\\qipf\\self\\down\\study\\node\\NW.js.txt')  
+@get('/api/load/images/{page}')
+def api_images(*, page='0'):
+	try:
+		if int(page) < 0:
+			page = 0
+	except Exception as e:
+		logging.exception(e)
+		page = 0
+	page = int(page)
+	pagesize = 10
+	data = (yield from File().find(index=page, limit=pagesize))
+	images = list({'hashpath': image.hashpath, 'name': image.name} for image in data['data'])
+	info = data['info']
+	print('info: %s' % info)
+
+	return {"images":images, "page":info}
+
+@get('/api/file/{id}')
+def api_file(request, *, id):
+	data = (yield from File(hashpath=id).find())['data']
+	path = r'F:\qipf\bak\img\leimu.jpg'
+	print('data: %s' % data)
+	if data is not None and len(data) > 0:
+		file = data[0]
+		path = file.path
+	rep = web.FileResponse(path)  
 	rep.enable_compression()  
 	return rep  
 

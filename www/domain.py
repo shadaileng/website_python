@@ -49,6 +49,7 @@ class Comment(Model):
 class File(Model):
 	hashpath = StringField(name='hashpath', primary_key=True)
 	path = StringField(name='path')
+	name = StringField(name='name')
 	filetype = StringField(name='filetype')
 	size = StringField(name='size')
 	atime = StringField(name='atime')
@@ -75,6 +76,7 @@ def start_server(func):
 
 if __name__ == '__main__':
 	print(__doc__ % __author__)
+
 	argv = sys.argv[1:]
 	if not argv:
 		logging.info('\nUsage: ./domain.py option\n\t0 - init\n\t1 - query')
