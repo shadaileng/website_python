@@ -76,7 +76,7 @@ def execute(sql, args = (), db = DB_SRC):
 	logging.info('change rows: %d' % change)
 	return change
 
-def run(sql):
+def query(sql):
 #	res = yield from execute('create table user(id number(50) primary key, name varchar(50), password varchar(50), email varchar(50), admin number(1), image varchar(500), create_time varchar(50))')
 #	
 #	print('create user: %s' % res)
@@ -93,17 +93,28 @@ def run(sql):
 #	
 #	print('create comment: %s' % res)
 	
-	rs = yield from select(sql, ())
-	for r in rs:
-		print(r)
+	res = yield from select(sql, ())
+	print(res)
+	for row in res:
+		print(row)
 
-def start_server():
+def execu(sql):
+	res = yield from execute(sql, ())
+	print('execute res: %s' % res)
+
+def start_server(func, sql):
 	loop = asyncio.get_event_loop()
-	tasks = [run(sql) for sql in ['select * from blog', 'select * from user']]
+	tasks = [func(sql) for sql in [sql]]
 	loop.run_until_complete(asyncio.wait(tasks))
 	loop.close()
 
 if __name__ == '__main__':
 	print(__doc__ % __author__)
-	
-	start_server()
+	argv = sys.argv[1:]
+	if not argv or len(argv) < 2:
+		logging.info('\nUsage: ./db_sqlite.py option sql\n\t0 - execu\n\t1 - query')
+		exit(0)
+	if argv[0] == '0':
+		start_server(execu, argv[1])
+	elif argv[0] == '1':
+		start_server(query, argv[1])

@@ -12,7 +12,7 @@ __author__ = 'Shadaileng'
 
 import logging; logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s line:%(lineno)d %(filename)s %(funcName)s >>> %(message)s')
 
-import asyncio
+import asyncio, datetime
 from apis import APIValueError, APIError
 from db_sqlite import select, execute
 
@@ -26,7 +26,7 @@ class Field(object):
 		return '<%s: %s, %s %s>' % (self.__class__.__name__, self.column_type, self.name, self.primary_key)
 
 class IntegeField(Field):
-	def __init__(self, name, column_type='Number(50)', primary_key = False, default=None):
+	def __init__(self, name, column_type='INTEGER', primary_key = False, default=None):
 		super(IntegeField, self).__init__(name, column_type, primary_key, default)
 
 class StringField(Field):
@@ -103,7 +103,44 @@ class Model(dict, metaclass=ModelMetaclass):
 			# mappings.append(mapping)
 		logging.info('mappings: %s' % mappings)
 		return mappings
-	
+
+	@asyncio.coroutine
+	def isexits(self):
+		logging.info('======================isexits======================');
+		sql = 'select * from sqlite_master where name = ? and type = "table"'
+		args = [self.__table__]
+		logging.info('SQL: %s' % sql)
+		logging.info('ARG: %s' % args)
+		logging.info('=========================');
+		res = yield from select(sql, args)
+		logging.info('find: %s' % res)
+		if res is None or len(res) == 0:
+			logging.info('table %s not exits' % self.__table__)
+			res = False
+		else:
+			logging.warn('table %s exits' % self.__table__)
+			res = True
+		logging.info('==================================================');
+		return res
+
+	@asyncio.coroutine
+	def createTable(self):
+		logging.info('======================create======================');
+		res = yield from self.isexits()
+		if not res:
+			logging.info('table %s not exits' % self.__table__)
+			# print('%s %s' % (key, val) for key, val in self.__mappings__)
+			sql = 'CREATE TABLE %s( %s )' % (self.__table__, ',' .join(list('%s %s %s %s' % (key, val.column_type, 'PRIMARY KEY AUTOINCREMENT' if val.column_type == 'INTEGER' else 'PRIMARY KEY' if val.primary_key else '', val.default if isinstance(val.default, str) else '') for key, val in self.__mappings__.items())))
+			logging.info('SQL: %s' % sql)
+			res = yield from execute(sql)
+			logging.info('create: %s' % res)
+			res = yield from self.isexits()
+			if res:
+				logging.info('create table %s success' % self.__table__)
+			else:
+				logging.warn('create table %s failed' % self.__table__)
+		logging.info('==================================================');
+
 	@asyncio.coroutine
 	def save(self):
 		logging.info('=======================save=======================');
@@ -119,7 +156,7 @@ class Model(dict, metaclass=ModelMetaclass):
 		logging.info('save: %s' % res)
 		if res == 0:
 			logging.info('insert 0 row')
-		logging.info('===============================================');
+		logging.info('==================================================');
 		return res
 
 	@asyncio.coroutine
@@ -197,7 +234,7 @@ class Model(dict, metaclass=ModelMetaclass):
 		sql = 'select %s from %s where %s limit %d offset %s' % (','.join(list(map(lambda x: x.upper(), self.__fields__))), self.__table__, ' and '.join(params), limit, index * limit)
 		logging.info('SQL: %s' % sql)
 		logging.info('ARG: %s' % args)
-		logging.info('===============================================');
+		logging.info('=========================');
 		res = yield from select(sql, args)
 		logging.info('find: %s' % res)
 		if res is None:

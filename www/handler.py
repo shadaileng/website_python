@@ -209,6 +209,14 @@ def api_blog_detail(*, id=0):
 		blog.author = user
 	return {'blog': blogs[0]}
 
+
+@get('/api/file')
+def api_file(request):
+	rep = web.FileResponse('G:\\qipf\\self\\down\\study\\node\\NW.js.txt')  
+	rep.enable_compression()  
+	return rep  
+
+
 if __name__ == '__main__':
 	print(__doc__ % __author__)
 	
