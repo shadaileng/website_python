@@ -17,7 +17,7 @@
 		$('#vm').show();
 	}
 	$(function () {
-		getJSON('{{action}}/0',  
+		getJSON('{{action}}',  
 				function(err, data){
 					if(err){
 						return fatal(err)
@@ -38,7 +38,7 @@
 
 	<div id="vm" class="uk-grid" data-uk-grid-match="{target: '.uk-panel'}">
 		<div v-repeat="image: images" class="uk-width-1-5 uk-margin-bottom">
-			<div class="uk-panel uk-panel-box ">
+			<div class="uk-panel uk-panel-box uk-height-1-4">
 				<h6 class="uk-panel-title" v-text="image.name"></h3>
 				<div class="uk-panel-badge">hot</div>
 				<img class="" v-attr="src: '/api/file/'+image.hashpath"></img>
