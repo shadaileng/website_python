@@ -213,7 +213,7 @@ def api_blog_detail(*, id=0):
 def redirect_image_list(request):
 	return {
 		'__template__': 'images.html',
-		'action': '/api/load/images'
+		'action': '/api/load/images',
 	}
 
 @get('/api/load/images/{page}')
