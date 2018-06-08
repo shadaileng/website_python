@@ -214,7 +214,6 @@ def redirect_image_list(request):
 	return {
 		'__template__': 'images.html',
 		'action': '/api/load/images/0',
-		'page_index': 0
 	}
 
 @get('/api/load/images/{page}')
