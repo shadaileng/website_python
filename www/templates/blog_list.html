@@ -62,21 +62,22 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr v-repeat="blog: blogs"> 
+				<tr v-for="blog in blogs"> 
 					<td>
-						<a target="_blank" v-attr="href: '/manage/blog/detail/'+blog.id" v-text="blog.name"></a>
+						<a target="_blank" :href="'/manage/blog/detail/'+blog.id" v-text="blog.name"></a>
 						<small v-text="blog.summary"></small>
 					</td>
 					<td>
-						<a target="_blank" v-attr="href: '/user/'+blog.user_id" v-text="blog.user_id"></a>
+						<a target="_blank" :href="'/user/'+blog.user_id" v-text="blog.user_id"></a>
 					</td>
 					<td>
 						<span v-text="blog.createtime"></span>
 					</td>
 					<td>
-						<a href="#0" v-on="click: blog_edit(blog)"><i class="uk-icon-edit"></i></a>
-						<a href="#0" v-on="click: blog_delete(blog)"><i class="uk-icon-trash-o"></i></a>
+						<a href="#0" @click="blog_edit(blog)"><i class="uk-icon-edit"></i></a>
+						<a href="#0" @click="blog_delete(blog)"><i class="uk-icon-trash-o"></i></a>
 					</td>
+					
 
 				</tr>
 			</tbody>

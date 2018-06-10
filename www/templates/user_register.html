@@ -58,7 +58,7 @@
 
 	<div class="uk-width-2-3">
 		<h2>用户注册</h2>
-		<form id="vm" v-on="submit: submit" class="uk-form uk-form-stacked">
+		<form id="vm" @submit="submit" class="uk-form uk-form-stacked">
 			<div class="uk-alert uk-alert-danger uk-hidden"></div>
 			<div class="uk-form-row">
 				<label class="uk-form-label">姓名: </label>
@@ -92,6 +92,23 @@
 			</div>
 
 		</form>
+		
+		
+		<div class="uk-button uk-button-default">Hover</div>
+		<div uk-dropdown>
+			<a href="#0"><i class="uk-icon-user"></i>12222222222</a>
+			<ul class="uk-nav uk-dropdown-nav">
+				<li class="uk-active"><a href="#">Active</a></li>
+				<li><a href="#">Item</a></li>
+				<li class="uk-nav-header">Header</li>
+				<li><a href="#">Item</a></li>
+				<li><a href="#">Item</a></li>
+				<li class="uk-nav-divider"></li>
+				<li><a href="#">Item</a></li>
+			</ul>
+		</div>
+		
+		
 	</div>
 
 {% endblock %}

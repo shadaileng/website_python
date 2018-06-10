@@ -4,48 +4,34 @@
 
 {% block beforehead %}
 <style>
-	.page_ {
-		padding: 10px;
-		border-radius: 5px;
-		margin: 3px;
-		width: 50px;
-	}
-	.panel_ {
-		display: inline;
-		background-color: #f1f1f1;
-		box-shadow: 2px 2px 2px;
-	}
-
-	.grid {
-        display: flex;
-        flex-flow: wrap;
-        justify-content: space-between;
-    }
-    .item {
-        flex: 0 0 15%;
-        margin: 10px;
-        width: auto;
-    }
-
-	.item>src {
-		height: 100px;
-	}	
 </style>
 <script type="text/javascript">
 	Vue.component('compage',{
-		template: `<div>
-						<div class="page_ panel_">共 <span v-text="page.page_count"></span> 页</div>
-						<button @click="prev" class="page_">pre</button>
-						<button v-text="page.page_index" class="page_"></button>
-						<button @click="next" class="page_">next</button><input type=number v-model="inputval" @keyup.enter="gotoPage" class="page_">
+		template: `<div >
+						<div :style="pagecom + pageshow">共 <span v-text="page.page_count"></span> 页</div>
+						<button @click="prev" :style="pagecom" v-text="'<<'"></button>
+						<div :style="pagecom + pageshow" v-text="page.page_index"></div>
+						<button @click="next" :style="pagecom" v-text="'>>'"></button>
+						<input type=number v-model="inputval" @keyup.enter="gotoPage" :style="pagecom + pageinput">
 					</div>`,
 		props: ['page'],
 		data: function () {
 			return {
-				inputval: 0
+				inputval: 0,
+				pagecom: `
+						padding: 4px;
+						border-radius: 5px;
+						margin: 3px;
+						width: 30px;
+						line-height: auto;`,
+				pageshow: `
+						display: inline;
+						background-color: #dedede;
+						box-shadow: 0 5px 2px #ccc;
+						min-width: 50px;`,
+				pageinput: `width: 50px;`
 			}
 		},
-
 		methods: {
 			prev: function(){
 				if(this.page.page_index > 0) {
@@ -67,7 +53,96 @@
 			}
 		}
 	});
-
+	
+	Vue.component('album', {
+		template: `
+			<div :style="contain">
+				<div id="album_item" :style="panel" v-for="image in images" @mousemove="nametoggle" @mouseleave="nametoggle" @click="modaltoggle">
+					<img :style="panelimg" :src="baseurl+image.hashpath"></img>
+					<p :style="panelp" v-text="image.name"></p>
+				</div>
+				<div id="album_modal" :style="modal" @click="modaltoggle"></div>
+			</div>
+		`,
+		props: ['images', 'baseurl'],
+		data: function() {
+			return {
+				contain: `
+					position: relative;
+					width: 75%;
+					height: 350px;
+				/*	border: 1px solid red; */
+				`,
+				panel: `
+					position: relative;
+					float: left; 
+					width: 15%; 
+					height: 40%; 
+					margin: 2%; 
+					display: flex; 
+					justify-content: center; 
+					align-items: center;
+				`,
+				panelimg: `
+					width: 100%;
+					height: auto;
+					height: 70%;
+					border-radius: 10px;
+				`,
+				panelp: `
+					position: absolute;
+					bottom: 0;
+					width: 100%;
+					height: 0%;
+					background-color: rgba(0, 0, 0, 0.7);
+					transition: 0.5s;
+					text-align: center;
+					color: #0FF;
+					overflow: hidden;
+				`,
+				modal: `
+					background-color: rgba(0, 0, 0, 0.6);
+					background-size: 40% 80%;
+					background-position: 50% 50%;
+					background-repeat: no-repeat;
+					backgroundPosition: center center;
+					position: absolute;
+					display: block;
+					background-image: url('http://www.runoob.com/images/compatible_chrome.gif');
+				`
+			}
+		},
+		methods: {
+			nametoggle: function(event){
+				event = event || window.event
+				let el = event.currentTarget
+				let elcp = el.querySelector("p")
+				width = Number(el.offsetWidth)
+				height = Number(el.offsetHeight)
+				x = event.offsetX
+				y = event.offsetY
+				if(x > 5 && x < width - 5 && y > 5 && y < width - 5){
+					elcp.style.height = '13%'
+				}else{
+					elcp.style.height = '0%'
+				}
+			},
+			modaltoggle: function(event){
+				event = event || window.event
+				let el = event.currentTarget
+				if(el.id == "album_item"){
+					let flag = el.querySelector("img").src.split('/').pop()
+					el.parentNode.querySelector("#album_modal").style.width = el.parentNode.offsetWidth + 'px'
+					el.parentNode.querySelector("#album_modal").style.height = el.parentNode.offsetHeight + 'px'
+					el.parentNode.querySelector("#album_modal").style.backgroundImage = 'url("' + this.baseurl + flag + '")'
+					el.parentNode.querySelector("#album_modal").style.display = "block"
+				}else{
+					el.parentNode.querySelector("#album_modal").style.display = "none"
+				}
+			}
+		}
+	});
+	
 	var vm
 	function initVM(data) {
 		vm = new Vue({
@@ -113,12 +188,9 @@
 		<span><i class="uk-icon-spinner uk-icon-medium uk-icon-spin"></i>正在加载 ... </span>
 	</div>
 
-	<div id="vm">
-		<div class="grid">
-			<div v-for="image in images" class="item">
-				<img :src="'/api/file/'+image.hashpath"></img>
-			</div>
-		</div>
+	<div id="vm" class="uk-width-1-1">
+		<album class="uk-width-2-3" :images="images" :baseurl="'/api/file/'"></album>
+		<hr>
 		<compage :page="page" @goto="goto"></compage>
 	</div>
 

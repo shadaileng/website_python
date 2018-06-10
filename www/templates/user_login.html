@@ -37,6 +37,9 @@
 						return location.assign('/')
 					});
 				}
+			},
+			mounted: function () {
+//				this.$el.parentNode.style.height = "410px"
 			}
 		});
 		$('#vm').show();
@@ -49,7 +52,7 @@
 
 	<div class="uk-width-2-3">
 		<h2>用户登陆</h2>
-		<form id="vm" v-on="submit: submit" class="uk-form uk-form-stacked">
+		<form id="vm" @submit="submit" class="uk-form uk-form-stacked">
 			<div class="uk-alert uk-alert-danger uk-hidden"></div>
 			
 			<div class="uk-form-row">
