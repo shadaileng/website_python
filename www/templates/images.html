@@ -7,29 +7,41 @@
 </style>
 <script type="text/javascript">
 	Vue.component('compage',{
-		template: `<div >
-						<div :style="pagecom + pageshow">共 <span v-text="page.page_count"></span> 页</div>
-						<button @click="prev" :style="pagecom" v-text="'<<'"></button>
-						<div :style="pagecom + pageshow" v-text="page.page_index"></div>
-						<button @click="next" :style="pagecom" v-text="'>>'"></button>
-						<input type=number v-model="inputval" @keyup.enter="gotoPage" :style="pagecom + pageinput">
-					</div>`,
+		template: `
+					<div :style="'display: inline; position: absolute; width: 100%;'">
+						<ul :style="pf_pagination">
+							<li :style="pf_pagination_item"><span>共<span v-text="page.page_count"></span>页</span></li>
+							<li :style="pf_pagination_item"><a @click="prev">上一页</a></li>
+							<li :style="pf_pagination_item"><span v-text="page.page_index"></span></li>
+							<li :style="pf_pagination_item"><a @click="next">下一页</a></li>
+							<li :style="pf_pagination_item"><input :style="pf_input" type=number v-model="inputval" @keyup.enter="gotoPage"></li>
+						</ul>
+					</div>
+					`,
 		props: ['page'],
 		data: function () {
 			return {
 				inputval: 0,
-				pagecom: `
-						padding: 4px;
+				pf_pagination: `
+					position: relative;
+					display: flex;
+					flex-wrap: wrap;
+				/*	margin-left: -20px; */
+					padding: 0;
+					list-style: none;
+					padding: 0px 30px;
+				`,
+				pf_pagination_item: `
+					flex: none;
+					padding-left: 20px;
+					position: relative;
+				`,
+				pf_input: `
+					    padding: 0px 10px;
 						border-radius: 5px;
-						margin: 3px;
-						width: 30px;
-						line-height: auto;`,
-				pageshow: `
-						display: inline;
-						background-color: #dedede;
-						box-shadow: 0 5px 2px #ccc;
-						min-width: 50px;`,
-				pageinput: `width: 50px;`
+						margin: 1%;
+						width: 35%;
+				`
 			}
 		},
 		methods: {
@@ -70,7 +82,7 @@
 				contain: `
 					position: relative;
 					width: 75%;
-					height: 350px;
+					height: 490px;
 				/*	border: 1px solid red; */
 				`,
 				panel: `
@@ -106,9 +118,10 @@
 					background-position: 50% 50%;
 					background-repeat: no-repeat;
 					backgroundPosition: center center;
-					position: absolute;
+					position: fixed;
+					top: 0;
+					left:0;
 					display: block;
-					background-image: url('http://www.runoob.com/images/compatible_chrome.gif');
 				`
 			}
 		},
@@ -121,7 +134,7 @@
 				height = Number(el.offsetHeight)
 				x = event.offsetX
 				y = event.offsetY
-				if(x > 5 && x < width - 5 && y > 5 && y < width - 5){
+				if(x > 5 && x < width - 5 && y > 5 && y < height - 5){
 					elcp.style.height = '13%'
 				}else{
 					elcp.style.height = '0%'
@@ -132,8 +145,10 @@
 				let el = event.currentTarget
 				if(el.id == "album_item"){
 					let flag = el.querySelector("img").src.split('/').pop()
-					el.parentNode.querySelector("#album_modal").style.width = el.parentNode.offsetWidth + 'px'
-					el.parentNode.querySelector("#album_modal").style.height = el.parentNode.offsetHeight + 'px'
+					// el.parentNode.querySelector("#album_modal").style.width = el.parentNode.offsetWidth + 'px'
+					// el.parentNode.querySelector("#album_modal").style.height = el.parentNode.offsetHeight + 'px'
+					el.parentNode.querySelector("#album_modal").style.width = window.innerWidth + 'px'
+					el.parentNode.querySelector("#album_modal").style.height = window.innerHeight + 'px'
 					el.parentNode.querySelector("#album_modal").style.backgroundImage = 'url("' + this.baseurl + flag + '")'
 					el.parentNode.querySelector("#album_modal").style.display = "block"
 				}else{

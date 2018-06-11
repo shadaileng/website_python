@@ -236,11 +236,25 @@ def api_images(*, page='0'):
 @get('/api/file/{id}')
 def api_file(request, *, id):
 	data = (yield from File(hashpath=id).find())['data']
-	path = r'F:\qipf\bak\img\leimu.jpg'
-	print('data: %s' % data)
+	logging.info('data: %s' % data)
+	path = os.path.join(os.path.dirname(__file__), 'static/img/icon/file/nor.png')
+	ftypelist = ['zip', 'rar', '7z', 'doc', 'log', 'mp4', 'ppt', 'ttf', 'tiff', 'txt', 'xtm']
+	tmp_ = ''
 	if data is not None and len(data) > 0:
 		file = data[0]
-		path = file.path
+		for t in ftypelist:
+			if t in file.filetype:
+				tmp_ = t
+		if tmp_ == '':
+			if 'image' in file.filetype:
+				path = file.path
+		else:
+			path = os.path.join(os.path.dirname(__file__), r'static/img/icon/file/%s.png' % tmp_)
+	# if data is not None and len(data) > 0:
+	# 	file = data[0]
+	# 	if file.filetype.find('zip') >= 0 ：
+	# 		path = r'/static/img/icon/file/zip.png'
+	# 	path = file.path
 	rep = web.FileResponse(path)  
 	rep.enable_compression()  
 	return rep  
