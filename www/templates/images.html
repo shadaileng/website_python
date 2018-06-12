@@ -79,7 +79,8 @@
 		data: function() {
 			return {
 				pf_view_panel: `
-/*					position: relative;
+/*	*/				
+					position: relative;
 					float: left; 
 					width: 15%; 
 					height: 40%; 
@@ -87,18 +88,21 @@
 					display: flex; 
 					justify-content: center; 
 					align-items: center;
-*/
 					border-radius: 5px;
 
 					border: 1px solid #efefef;
-					
-					background-size: 1% 1%;
-					background-position: 100% 100%;
-					background-repeat: no-repeat;
-					backgroundPosition: center center;
 					// background-color: rgba(0, 0, 0, 0.6);s
+
+					// background-size: cover;
+					// background-position: 50% 50%;
+					// backgroundPosition: center center;
+					// background-repeat: no-repeat;
+					background-repeat: no-repeat;
+					background-size: cover;
+					background-position: center;
 				`,
 				pf_view_item:`
+					position: relative;
 					width: 100%; 
 					height: 100%;
 				`,
@@ -112,6 +116,7 @@
 					transition: 0.5s;
 					text-align: center;
 					color: #0FF;
+					text-overflow:ellipsis;
 					overflow: hidden;
 				`,
 				pf_view_modal: `
@@ -128,10 +133,10 @@
 			}
 		},
 		mounted: function(){
-			this.$el.querySelector('#album_item').style.backgroundImage = 'url(' + this.url + ')'
+			this.$el.style.backgroundImage = 'url(' + this.url + ')'
 		},
 		updated: function(){
-			this.$el.querySelector('#album_item').style.backgroundImage = 'url(' + this.url + ')'
+			this.$el.style.backgroundImage = 'url(' + this.url + ')'
 		},
 		methods: {
 			nametoggle: function(event){
@@ -143,8 +148,9 @@
 				x = event.offsetX
 				y = event.offsetY
 				if(x > 5 && x < width - 5 && y > 5 && y < height - 5){
-					elcp.style.height = '13%'
-					el.style.cursor = "pointer"
+					elcp.style.height = 'auto'
+					elcp.style.height = elcp.offsetHeight + 'px'
+					el.style.cursor = "zoom-in"
 				}else{
 					elcp.style.height = '0%'
 					el.style.cursor = "default"
@@ -161,14 +167,24 @@
 					
 				}else{
 					let modal = el.parentNode.querySelector("#album_modal")
+
+					modal.style.display = "block"
 					modal.style.width = window.innerWidth + 'px'
 					modal.style.height = window.innerHeight + 'px'
 					modal.style.backgroundImage = 'url("' + this.url + '")'
 					modal.style.backgroundSize = "40%"
-					modal.style.backgroundPosition = "50% 50%"
-					modal.style.display = "block"
-					modal.style.cursor = "pointer"
+					let percent = Number(modal.style.backgroundSize.substr(0, modal.style.backgroundSize.length - 1)) / 200
+					modal.style.backgroundPosition = (document.body.clientWidth * (0.5 - percent)) + 'px ' + (document.body.clientHeight * (0.1)) + 'px'
 					
+					modal.style.cursor = "pointer"
+
+					let img = document.createElement('img')
+					img.src = this.url
+					modal.width_ = img.width
+					modal.height_ = img.height
+
+					el.querySelector("p").style.height = '0%'
+
 					this.stop()
 				}
 			},
@@ -198,30 +214,19 @@
 				if(el.px > 0 && el.py > 0){
 					let x = event.clientX
 					let y = event.clientY
-					let deltaX = x - el.px
-					let deltaY = el.py - y
 					let curPos = el.style.backgroundPosition;
-					let xy = curPos.replace(' ', '').split('%')
-					
+					let xy = curPos.replace(' ', '').split('px')
+
+					let deltaX = el.px - Number(xy[0])
+					let deltaY = el.py - Number(xy[1])
+					el.px = x
+					el.py = y
+
 					let width = window.innerWidth
 					let height = window.innerHeight
-					
-					if((Number(xy[0]) >= 0)) {
-						deltaX = (deltaX / width) * 6.5
-					}else{
-						deltaX = 5
-					}
-					
-					if((Number(xy[0]) > 100)) {
-						deltaX = -5
-					}
-					
-					el.style.backgroundPosition = (Number(xy[0]) + deltaX) + '% ' + (Number(xy[1]) + (deltaY / height) * 0.3) + '%'
-				//	console.log('move x: ' + (deltaX / width) + ' y: ' + (deltaY / height))
-				//	console.log('curPos: (' + xy[0] + ',' + xy[1] + ')')
+
+					el.style.backgroundPosition = (x - deltaX) + 'px ' + (y - deltaY) + 'px'
 				}
-				// console.log('curPos: ' + el.style.backgroundPosition)
-				// console.log((Number(xy[0]) + deltaX * 0.01) + '% ' + (Number(xy[1]) + deltaY * 0.01) + '%;')
 			},
 			removemark: function(event){
 				event = event || window.event
@@ -247,16 +252,17 @@
 	Vue.component('album', {
 		template: `
 			<div :style="contain">
-				<div :style="panel" v-for="image in images">
-					<viewcom :style="panelimg" :name="image.name" :url="baseurl+image.hashpath"></viewcom>
-				</div>
+				<viewcom v-for="image in images" :name="image.name"  :url="baseurl+image.hashpath"></viewcom>
 <!--
+				<div v-for="image in images" :style="panel">
+					<viewcom :name="image.name" :url="baseurl+image.hashpath"></viewcom>
+				</div>
 				<div id="album_item" :style="panel" v-for="image in images">
 					<img :style="panelimg" :src="baseurl+image.hashpath"></img>
 					<p :style="panelp" v-text="image.name"></p>
 				</div>
--->
 				<div id="album_modal" :style="modal" @click="modaltoggle"></div>
+-->
 			</div>
 		`,
 		props: ['images', 'baseurl'],
@@ -364,7 +370,6 @@
 				}
 			}
 		});
-		$('#vm').show();
 	}
 	$(function () {
 		getJSON('{{action}}',  
@@ -391,5 +396,7 @@
 		<hr>
 		<compage :page="page" @goto="goto"></compage>
 	</div>
+
+
 
 {% endblock %}
