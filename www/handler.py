@@ -257,6 +257,7 @@ def api_file(request, *, id):
 	# 	path = file.path
 	rep = web.FileResponse(path)  
 	rep.enable_compression()  
+	rep.headers=MultiDict({'Access-Control-Allow-Origin': '*'})
 	return rep  
 
 
