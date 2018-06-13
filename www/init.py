@@ -17,10 +17,11 @@ from tools import loadResource
 
 from domain import File
 
-def initFile():
+def initFile(flag):
 	# 清空File表
-	res = yield from File().delete()
-	logging.info('delete: %s' % res)
+	if(flag == '0'):
+		res = yield from File().delete()
+		logging.info('delete: %s' % res)
 	# 导入File数据
 	path = ''
 	if 'win' in sys.platform:
@@ -33,9 +34,9 @@ def initFile():
 			res = yield from File(**file).save()
 			print('res: %s' % res)
 
-def start_server(func):
+def start_server(func, arg):
 	loop = asyncio.get_event_loop()
-	tasks = [func()]
+	tasks = [func(arg)]
 	loop.run_until_complete(asyncio.wait(tasks))
 	loop.close()
 
@@ -43,8 +44,8 @@ if __name__ == '__main__':
 	argv = sys.argv[1:]
 	logging.info('argv: %s' % argv)
 	logging.info('platform: %s' % sys.platform)
-	if not argv:
+	if not argv and len(argv) < 2:
 		logging.info('\nUsage: ./init.py option \n\t0 - file')
 		exit(0)
 	if argv[0] == '0':
-		start_server(initFile)
+		start_server(initFile, argv[1])

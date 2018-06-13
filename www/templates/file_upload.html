@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}编辑博客{% endblock %}
+
+{% block beforehead %}
+
+<script type="text/javascript">
+	function initVM(data) {
+		var vm = new Vue({
+			el: '#vm',
+			data: blog,
+			methods: {
+				submit: function(event){
+					event.preventDefault();
+					$form = $('#vm').find('form');
+					console.log(this.$data);
+					$form.postJSON('/api/upload', this.$data, function(err, r){
+						if(err){
+							return $form.showFormError(err)
+						}
+						return location.assign('/')
+					});
+				}
+			}
+		});
+		$('#vm').show();
+	}
+	$(function () {
+		$('#loading').hide()
+		// initVM(
+		// 	{
+		// 		name: '',
+		// 	}
+		// );
+		
+	});
+</script>
+
+{% endblock %}
+
+{% block content %}
+	
+
+	<div id='error' class="uk-width-1-1"></div>
+
+	<div id='loading' class="uk-width-1-1, uk-text-center">
+		<span><i class="uk-icon-spinner uk-icon-medium uk-icon-spin"></i>正在加载 ... </span>
+	</div>
+
+	<div id="vm" class="uk-width-2-3">
+		<form class="uk-form uk-form-stacked" method="post" action="/api/upload" accept-charset="utf-8" enctype="multipart/form-data">
+			<div class="uk-alert uk-alert-danger uk-hidden"></div>
+			
+			<div class="uk-form-row">
+				<label class="uk-form-label">标题: </label>
+				<div class="uk-form-controls">
+					<input type="text" name="name" maxlength="50" placeholder="输入文件名" class="uk-width-2-3">
+				</div>
+			</div>
+			
+			<div class="uk-form-row">
+				<label class="uk-form-label">上传: </label>
+				<div class="uk-form-controls">
+					<input type="file" name="upload" class="uk-width-2-3">
+				</div>
+			</div>
+			
+			<div class="uk-form-row">
+				<div class="uk-form-controls">
+					<button type="submit" class="uk-button uk-button-primary"><i class="uk-icon-save"></i>保存</button>
+					<a href="/manage/blogs" class="uk-button"><i class="uk-icon-time"></i>取消</a>
+				</div>
+			</div>
+
+		</form>
+	</div>
+
+{% endblock %}
