@@ -92,11 +92,12 @@ def query(sql):
 #	res = yield from execute('create table file(hashpath varchar(100), path varchar(100), filetype varchar(50), size number(20), atime varchar(50), mtime varchar(50), ctime varchar(50))')
 #	
 #	print('create comment: %s' % res)
-	
+	print('sql: %s' % sql)
 	res = yield from select(sql, ())
 	print(res)
-	for row in res:
-		print(row)
+	if res is not None:
+		for row in res:
+			print(row)
 
 def execu(sql):
 	res = yield from execute(sql, ())

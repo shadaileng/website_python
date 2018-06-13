@@ -11,5 +11,19 @@
 __author__ = 'Shadaileng'
 
 configs = {
-	'db': 'test.db'
+	'db': {
+		'name': 'test.db',
+	},
+	'dev': {
+		'win': {
+			'datapath': {
+				'file': r'F:\qipf\bak\img'
+			}
+		},
+		'linux': {
+			'datapath': {
+				'file': r'/home/shadaileng/develop/OpenGl/workspace/res/texture'
+			}
+		}
+	}
 }

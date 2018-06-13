@@ -36,6 +36,7 @@ def loadResource(path):
 	return files
 
 def record(path):
+	print(path)
 	files = loadResource(path)
 	for file in files:
 		res = yield from File(**file).save()
@@ -54,3 +55,5 @@ if __name__ == '__main__':
 		exit(0)
 	if argv[0] == '0':
 		start_server(record, argv[1])
+	if argv[0] == '1':
+		start_server(test, argv[1])

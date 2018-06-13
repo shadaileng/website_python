@@ -162,7 +162,7 @@ class Model(dict, metaclass=ModelMetaclass):
 	@asyncio.coroutine
 	def delete(self):
 		logging.info('=======================delete=====================');
-		params = []
+		params = ['1 = 1']
 		args = []
 		for field in self.__fields__:
 			value = self.getValue(field)
@@ -170,7 +170,7 @@ class Model(dict, metaclass=ModelMetaclass):
 				continue
 			params.append('%s = ?' % field)
 			args.append(value)
-		sql = 'delete from %s where %s' % (self.__table__, ','.join(params))
+		sql = 'delete from %s where %s' % (self.__table__, ' and '.join(params))
 		logging.info('SQL : %s' % sql)
 		logging.info('ARGS: %s' % args)
 		res = yield from execute(sql, args)

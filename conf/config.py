@@ -40,15 +40,18 @@ class Dict(dict):
 		self[key] = value
 #合并默认配置和覆盖配置
 def merge(default, override):
-	r = {}
-	for k, v in default.items():
-		if k in override.keys():
-			if isinstance(v, dict):
-					r[k] = merge(v, override[k])
-			else:
-				r[k] = override[k]
-		else:
-			r[k] = v
+	r = default
+
+	for k, v in override.items():
+		r[k] = (merge(default[k], v) if isinstance(v, dict) else v) if k in default.keys() else v
+		# if k in default.keys():
+		# 	if isinstance(v, dict):
+		# 		r[k] = merge(default[k], v)
+		# 	else:
+		# 		r[k] = v
+		# else:
+		# 	r[k] = v
+
 	return r
 #将dict转化为Dict类
 def toDict(d):
@@ -59,10 +62,11 @@ def toDict(d):
 	return D
 
 try:
-	import config_override
-	configs = merge(configs, config_override.configs)
+	import sys, os
+	from conf.config_override import configs as config_override
+	configs = merge(configs, config_override)
 except Exception as e:
-	pass
+	print('error: %s' % e)
 #最终的配置
 configs = toDict(configs)
 
